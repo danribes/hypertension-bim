@@ -10,7 +10,35 @@
 
 ## Quick Start with Docker
 
-The fastest way to get started is using Docker:
+The fastest way to get started is using Docker. Choose your platform below.
+
+### Prerequisites
+
+#### macOS
+1. Install [Docker Desktop for Mac](https://docs.docker.com/desktop/install/mac-install/)
+2. Git is pre-installed on macOS. If not, install via `xcode-select --install`
+
+#### Windows
+1. Install [Docker Desktop for Windows](https://docs.docker.com/desktop/install/windows-install/)
+   - Requires Windows 10/11 with WSL 2 enabled
+   - During installation, ensure "Use WSL 2 instead of Hyper-V" is selected
+2. Install [Git for Windows](https://git-scm.com/download/win)
+
+#### Linux (Ubuntu/Debian)
+```bash
+# Install Docker
+sudo apt-get update
+sudo apt-get install docker.io docker-compose
+sudo usermod -aG docker $USER
+# Log out and back in for group changes to take effect
+
+# Git is usually pre-installed, if not:
+sudo apt-get install git
+```
+
+### Run the Application
+
+Once Docker is installed, the commands are the same on all platforms:
 
 ```bash
 # Clone the repository
@@ -38,6 +66,15 @@ docker-compose down
 docker build -t hypertension-bim .
 docker run -p 8501:8501 hypertension-bim
 ```
+
+### Troubleshooting
+
+| Issue | Platform | Solution |
+|-------|----------|----------|
+| "Docker daemon not running" | All | Start Docker Desktop (Mac/Windows) or `sudo systemctl start docker` (Linux) |
+| "Permission denied" | Linux | Run `sudo usermod -aG docker $USER` and log out/in |
+| Port 8501 already in use | All | Change port: `docker run -p 8502:8501 hypertension-bim` then access http://localhost:8502 |
+| Slow build on Mac M1/M2 | macOS | This is normal for first build; subsequent runs use cache |
 
 ---
 
@@ -95,27 +132,7 @@ This model uses a **hybrid Python + Excel approach**:
 
 ### Option 1: Docker (Recommended)
 
-```bash
-# Clone the repository
-git clone https://github.com/danribes/hypertension-bim.git
-cd hypertension-bim
-
-# Build and run with Docker Compose
-docker-compose up
-
-# Access the web interface at http://localhost:8501
-```
-
-To stop:
-```bash
-docker-compose down
-```
-
-**Without docker-compose:**
-```bash
-docker build -t hypertension-bim .
-docker run -p 8501:8501 hypertension-bim
-```
+See [Quick Start with Docker](#quick-start-with-docker) above for platform-specific instructions.
 
 ### Option 2: Local Python Installation
 
