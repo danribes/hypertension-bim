@@ -8,20 +8,47 @@
 
 ---
 
+## Quick Start with Docker
+
+The fastest way to get started is using Docker:
+
+```bash
+# Clone the repository
+git clone https://github.com/danribes/hypertension-bim.git
+cd hypertension-bim
+
+# Build and run with Docker
+docker build -t hypertension-bim .
+docker run -p 8501:8501 hypertension-bim
+```
+
+Then open **http://localhost:8501** in your browser to access the interactive web interface.
+
+Alternatively, use docker-compose:
+
+```bash
+docker-compose up -d
+```
+
+---
+
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Installation](#installation)
-3. [Quick Start](#quick-start)
-4. [Model Structure](#model-structure)
-5. [Input Parameters](#input-parameters)
-6. [Modifying Inputs](#modifying-inputs)
-7. [Output Description](#output-description)
-8. [Command Line Options](#command-line-options)
-9. [Multi-Country Support](#multi-country-support)
-10. [Technical Details](#technical-details)
-11. [File Structure](#file-structure)
-12. [Linking to CEA Model](#linking-to-cea-model)
+2. [Getting Started](#getting-started)
+3. [Web Interface (Streamlit)](#web-interface-streamlit)
+4. [Installation (Local)](#installation-local)
+5. [Quick Start (Python)](#quick-start-python)
+6. [Model Structure](#model-structure)
+7. [Enhanced Features](#enhanced-features)
+8. [Input Parameters](#input-parameters)
+9. [Modifying Inputs](#modifying-inputs)
+10. [Output Description](#output-description)
+11. [Command Line Options](#command-line-options)
+12. [Multi-Country Support](#multi-country-support)
+13. [Technical Details](#technical-details)
+14. [File Structure](#file-structure)
+15. [Linking to CEA Model](#linking-to-cea-model)
 
 ---
 
@@ -55,7 +82,62 @@ This model uses a **hybrid Python + Excel approach**:
 
 ---
 
-## Installation
+## Getting Started
+
+### Option 1: Docker (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/danribes/hypertension-bim.git
+cd hypertension-bim
+
+# Build the Docker image
+docker build -t hypertension-bim .
+
+# Run the container
+docker run -p 8501:8501 hypertension-bim
+
+# Access the web interface at http://localhost:8501
+```
+
+To stop the container:
+```bash
+docker stop $(docker ps -q --filter ancestor=hypertension-bim)
+```
+
+### Option 2: Local Python Installation
+
+See [Installation (Local)](#installation-local) below.
+
+---
+
+## Web Interface (Streamlit)
+
+The model includes a full-featured web interface built with Streamlit:
+
+### Features
+
+- **Country Selection**: US, UK, Germany, France, Italy, Spain
+- **Scenario Selection**: Conservative, Moderate, Optimistic uptake curves
+- **Interactive Inputs**: Sliders and number inputs for population and costs
+- **Real-time Calculation**: Results update instantly as you change inputs
+- **Subgroup Analysis**: Stratify by age, CKD stage, prior CV events, diabetes
+- **Sensitivity Analysis**: Run probabilistic sensitivity analysis (Monte Carlo)
+- **Excel Download**: Generate comprehensive Excel reports with all analyses
+
+### Tabs
+
+| Tab | Content |
+|-----|---------|
+| **Results** | Key metrics, year-by-year table, budget impact charts |
+| **Scenarios** | Side-by-side comparison of all uptake scenarios |
+| **Subgroups** | Budget impact stratified by patient subgroups |
+| **Events** | Clinical events avoided and associated cost savings |
+| **PSA** | Probabilistic sensitivity analysis with configurable iterations |
+
+---
+
+## Installation (Local)
 
 ### Prerequisites
 
@@ -65,8 +147,9 @@ This model uses a **hybrid Python + Excel approach**:
 ### Setup
 
 ```bash
-# Navigate to the project directory
-cd "/home/dan/Genesis Interview/hypertension_bim"
+# Clone the repository
+git clone https://github.com/danribes/hypertension-bim.git
+cd hypertension-bim
 
 # Install dependencies
 pip install -r requirements.txt
@@ -78,10 +161,20 @@ pip install -r requirements.txt
 |---------|---------|---------|
 | `openpyxl` | >=3.1.0 | Excel file generation |
 | `numpy` | >=1.24.0 | Numerical calculations |
+| `scipy` | >=1.10.0 | Probabilistic sensitivity analysis |
+| `streamlit` | >=1.28.0 | Web interface |
+
+### Running the Web Interface Locally
+
+```bash
+streamlit run streamlit_app.py
+```
+
+Then open **http://localhost:8501** in your browser.
 
 ---
 
-## Quick Start
+## Quick Start (Python)
 
 ### Basic Usage
 
@@ -130,6 +223,73 @@ The model will:
 │                  • Year-by-Year Breakdown                       │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Enhanced Features
+
+The enhanced BIM includes additional capabilities for comprehensive payer analysis:
+
+### Clinical Event Analysis
+
+Track and cost clinical events by treatment:
+
+| Event Type | Description |
+|------------|-------------|
+| Stroke | Ischemic and hemorrhagic stroke |
+| MI | Myocardial infarction |
+| HF | Heart failure hospitalization |
+| CKD | Chronic kidney disease progression |
+| ESRD | End-stage renal disease |
+| CV Death | Cardiovascular mortality |
+
+### Subgroup Analysis
+
+Stratify budget impact by patient characteristics:
+
+| Subgroup | Categories |
+|----------|------------|
+| Age | <65, 65-74, 75+ |
+| CKD Stage | Stage 1-2 (eGFR≥60), Stage 3 (30-59), Stage 4 (15-29) |
+| Prior CV | No prior events, Prior events |
+| Diabetes | No diabetes, With diabetes |
+
+### Treatment Persistence
+
+Model real-world discontinuation patterns:
+- Year 1 and Year 2+ discontinuation rates by treatment
+- Switching patterns between treatments
+
+### Extended Time Horizon
+
+- Standard 5-year analysis
+- Extended 10-year projection with Year 5 plateau assumption
+
+### Sensitivity Analysis
+
+| Analysis Type | Description |
+|---------------|-------------|
+| Tornado Diagram | One-way sensitivity on 7 key parameters |
+| Multi-way | Vary multiple parameters simultaneously |
+| PSA (Monte Carlo) | 1000+ iteration probabilistic analysis with 95% CI |
+
+### Enhanced Excel Output
+
+The enhanced Excel report includes 13 sheets:
+
+1. Cover
+2. Input Dashboard
+3. Population
+4. Market Dynamics
+5. Costs
+6. Results Dashboard
+7. Scenario Comparison
+8. **Tornado Diagram** - One-way sensitivity visualization
+9. **Subgroup Analysis** - Budget impact by patient subgroup
+10. **10-Year Projection** - Extended horizon analysis
+11. **Event Analysis** - Clinical events and costs avoided
+12. **PSA Results** - Monte Carlo simulation results
+13. Documentation
 
 ---
 
@@ -456,19 +616,36 @@ The model supports 6 markets with pre-configured defaults:
 
 ```
 hypertension_bim/
-├── README.md                         # This file
-├── requirements.txt                  # Python dependencies
-├── run_bim.py                        # Main runner script
-├── IXA001_Budget_Impact_Model.xlsx   # Generated Excel (US)
-├── IXA001_BIM_UK.xlsx               # Generated Excel (UK)
+├── README.md                    # This file
+├── requirements.txt             # Python dependencies
+├── Dockerfile                   # Docker container configuration
+├── docker-compose.yml           # Docker Compose configuration
+├── .dockerignore                # Docker build exclusions
+├── .gitignore                   # Git exclusions
+├── streamlit_app.py             # Web interface application
+├── run_bim.py                   # Command-line runner script
+├── run_interactive_bim.py       # Interactive Excel runner
 └── src/
     ├── __init__.py
     └── bim/
-        ├── __init__.py               # Package exports
-        ├── inputs.py                 # Data classes for all inputs
-        ├── calculator.py             # Core calculation engine
-        └── excel_generator.py        # Excel workbook generator
+        ├── __init__.py          # Package exports
+        ├── inputs.py            # Data classes (base + enhanced)
+        ├── calculator.py        # Calculation engine (base + enhanced)
+        ├── excel_generator.py   # Standard Excel generator
+        ├── excel_enhanced.py    # Enhanced Excel generator (13 sheets)
+        └── excel_interactive.py # Interactive Excel features
 ```
+
+### Key Classes
+
+| Class | File | Description |
+|-------|------|-------------|
+| `BIMInputs` | inputs.py | Base input parameters |
+| `ExtendedBIMInputs` | inputs.py | Enhanced inputs with events, subgroups |
+| `BIMCalculator` | calculator.py | Standard 5-year calculation |
+| `EnhancedBIMCalculator` | calculator.py | Full analysis with PSA, tornado, subgroups |
+| `ExcelGenerator` | excel_generator.py | Standard Excel output |
+| `EnhancedExcelGenerator` | excel_enhanced.py | 13-sheet comprehensive report |
 
 ---
 
