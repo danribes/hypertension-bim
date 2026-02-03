@@ -588,6 +588,11 @@ def main():
         # Run tornado analysis for Excel
         extended_results.tornado_results = calculator.run_tornado_analysis()
 
+        # Run PSA for Excel (smaller iteration count for speed)
+        extended_results.psa_results = calculator.run_probabilistic_sensitivity(
+            iterations=500, seed=42
+        )
+
         # Generate Excel
         excel_buffer = generate_excel_download(inputs, extended_results)
 
