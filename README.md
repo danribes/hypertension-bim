@@ -17,17 +17,26 @@ The fastest way to get started is using Docker:
 git clone https://github.com/danribes/hypertension-bim.git
 cd hypertension-bim
 
-# Build and run with Docker
-docker build -t hypertension-bim .
-docker run -p 8501:8501 hypertension-bim
+# Build and run with Docker Compose
+docker-compose up
 ```
 
 Then open **http://localhost:8501** in your browser to access the interactive web interface.
 
-Alternatively, use docker-compose:
-
+To run in detached mode (background):
 ```bash
 docker-compose up -d
+```
+
+To stop:
+```bash
+docker-compose down
+```
+
+**Alternative (without docker-compose):**
+```bash
+docker build -t hypertension-bim .
+docker run -p 8501:8501 hypertension-bim
 ```
 
 ---
@@ -91,18 +100,21 @@ This model uses a **hybrid Python + Excel approach**:
 git clone https://github.com/danribes/hypertension-bim.git
 cd hypertension-bim
 
-# Build the Docker image
-docker build -t hypertension-bim .
-
-# Run the container
-docker run -p 8501:8501 hypertension-bim
+# Build and run with Docker Compose
+docker-compose up
 
 # Access the web interface at http://localhost:8501
 ```
 
-To stop the container:
+To stop:
 ```bash
-docker stop $(docker ps -q --filter ancestor=hypertension-bim)
+docker-compose down
+```
+
+**Without docker-compose:**
+```bash
+docker build -t hypertension-bim .
+docker run -p 8501:8501 hypertension-bim
 ```
 
 ### Option 2: Local Python Installation
