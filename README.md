@@ -84,17 +84,15 @@ docker run -p 8501:8501 hypertension-bim
 2. [Getting Started](#getting-started)
 3. [Web Interface (Streamlit)](#web-interface-streamlit)
 4. [Installation (Local)](#installation-local)
-5. [Quick Start (Python)](#quick-start-python)
-6. [Model Structure](#model-structure)
-7. [Enhanced Features](#enhanced-features)
-8. [Input Parameters](#input-parameters)
-9. [Modifying Inputs](#modifying-inputs)
-10. [Output Description](#output-description)
-11. [Command Line Options](#command-line-options)
-12. [Multi-Country Support](#multi-country-support)
-13. [Technical Details](#technical-details)
-14. [File Structure](#file-structure)
-15. [Linking to CEA Model](#linking-to-cea-model)
+5. [Model Structure](#model-structure)
+6. [Enhanced Features](#enhanced-features)
+7. [Input Parameters](#input-parameters)
+8. [Modifying Inputs](#modifying-inputs)
+9. [Output Description](#output-description)
+10. [Multi-Country Support](#multi-country-support)
+11. [Technical Details](#technical-details)
+12. [File Structure](#file-structure)
+13. [Linking to CEA Model](#linking-to-cea-model)
 
 ---
 
@@ -200,26 +198,6 @@ streamlit run streamlit_app.py
 ```
 
 Then open **http://localhost:8501** in your browser.
-
----
-
-## Quick Start (Python)
-
-### Basic Usage
-
-```bash
-# Run with default settings (US, moderate scenario, 1M population)
-python run_bim.py
-
-# Run and compare all scenarios
-python run_bim.py --compare-scenarios
-```
-
-### Output
-
-The model will:
-1. Print results to the console
-2. Generate an Excel file: `IXA001_Budget_Impact_Model.xlsx`
 
 ---
 
@@ -426,28 +404,13 @@ When patients switch to IXA-001, they come from:
 
 ## Modifying Inputs
 
-### Method 1: Command Line Arguments
+### Method 1: Web Interface
 
-```bash
-# Change country
-python run_bim.py --country UK
+Use the Streamlit web interface to modify inputs interactively via sliders and input fields.
 
-# Change scenario
-python run_bim.py --scenario optimistic
+### Method 2: Python Code
 
-# Change population size
-python run_bim.py --population 500000
-
-# Change IXA-001 price
-python run_bim.py --ixa-price 4500
-
-# Combine multiple options
-python run_bim.py --country UK --population 500000 --scenario conservative
-```
-
-### Method 2: Modify Python Code
-
-Edit `run_bim.py` or create a custom script:
+Create a custom script:
 
 ```python
 from src.bim import BIMInputs, BIMCalculator, ExcelGenerator, UptakeScenario
@@ -477,17 +440,6 @@ generator = ExcelGenerator(inputs, results)
 generator.generate("Custom_BIM_Output.xlsx")
 ```
 
-### Method 3: Edit the Excel Output
-
-After generating the Excel file, you can:
-
-1. Open `IXA001_Budget_Impact_Model.xlsx`
-2. Go to the **Input Dashboard** sheet
-3. Modify the yellow-highlighted cells
-4. Values will update in linked cells (note: full recalculation requires re-running Python)
-
-**Important:** The Excel file is primarily for **presentation and payer discussions**. For full recalculation with modified inputs, use the Python script.
-
 ### What Happens When You Change Inputs
 
 | Input Changed | Effect on Model |
@@ -504,31 +456,6 @@ After generating the Excel file, you can:
 
 ## Output Description
 
-### Console Output
-
-```
-======================================================================
-BUDGET IMPACT MODEL RESULTS
-Country: United States
-Scenario: Moderate
-======================================================================
-
-POPULATION SIZING
-  Total Plan Population:           1,000,000
-  Eligible for Treatment:             11,232
-
-KEY METRICS
-  5-Year Budget Impact:      $    72,712,540
-  Average Annual Impact:     $    14,542,508
-  Year 1 PMPM:               $          0.45
-  Year 5 PMPM:               $          1.80
-
-YEAR-BY-YEAR BREAKDOWN
-  Year   IXA-001 Pts   Current World      New World        Impact
-  1            1,123   $    5,928,900   $   11,315,480   $  5,386,580
-  ...
-```
-
 ### Excel Output Sheets
 
 | Sheet | Description | Use Case |
@@ -542,45 +469,6 @@ YEAR-BY-YEAR BREAKDOWN
 | **Scenario Comparison** | Side-by-side Conservative/Moderate/Optimistic | Risk assessment |
 | **Sensitivity** | Price and prevalence sensitivity tables | Uncertainty analysis |
 | **Documentation** | Data sources, assumptions, limitations | Technical appendix |
-
----
-
-## Command Line Options
-
-```bash
-python run_bim.py [OPTIONS]
-
-Options:
-  --country {US,UK,DE,FR,IT,ES}    Country for analysis (default: US)
-  --scenario {conservative,moderate,optimistic}
-                                    Uptake scenario (default: moderate)
-  --population INTEGER              Total plan population (default: 1,000,000)
-  --ixa-price FLOAT                 Annual IXA-001 drug cost (overrides default)
-  --output FILENAME                 Output Excel filename (default: IXA001_Budget_Impact_Model.xlsx)
-  --no-excel                        Skip Excel generation (console only)
-  --compare-scenarios               Compare all uptake scenarios
-```
-
-### Examples
-
-```bash
-# US market with optimistic uptake
-python run_bim.py --scenario optimistic
-
-# UK market with 500K population
-python run_bim.py --country UK --population 500000
-
-# Price sensitivity test
-python run_bim.py --ixa-price 4000 --output BIM_Price4000.xlsx
-
-# Console output only (no Excel)
-python run_bim.py --no-excel --compare-scenarios
-
-# Generate for all EU5 markets
-for country in UK DE FR IT ES; do
-    python run_bim.py --country $country --output "BIM_${country}.xlsx"
-done
-```
 
 ---
 
@@ -652,8 +540,6 @@ hypertension_bim/
 ├── .dockerignore                # Docker build exclusions
 ├── .gitignore                   # Git exclusions
 ├── streamlit_app.py             # Web interface application
-├── run_bim.py                   # Command-line runner script
-├── run_interactive_bim.py       # Interactive Excel runner
 └── src/
     ├── __init__.py
     └── bim/
@@ -661,8 +547,7 @@ hypertension_bim/
         ├── inputs.py            # Data classes (base + enhanced)
         ├── calculator.py        # Calculation engine (base + enhanced)
         ├── excel_generator.py   # Standard Excel generator
-        ├── excel_enhanced.py    # Enhanced Excel generator (13 sheets)
-        └── excel_interactive.py # Interactive Excel features
+        └── excel_enhanced.py    # Enhanced Excel generator (13 sheets)
 ```
 
 ### Key Classes
