@@ -8,6 +8,53 @@
 
 ---
 
+## Target Population: Resistant Hypertension
+
+This model specifically targets **resistant hypertension (rHTN)** patients — a high-cost population where IXA-001 offers significant clinical and economic value.
+
+### What is Resistant Hypertension?
+
+**Definition:** Blood pressure uncontrolled (≥130/80 mmHg) despite optimal use of ≥3 antihypertensive agents, including a diuretic.
+
+**Prevalence:** ~12% of treated hypertensive patients
+
+### Why Resistant HTN is a High-Value Population for Payers
+
+| Characteristic | General HTN | Resistant HTN | Budget Implication |
+|----------------|-------------|---------------|-------------------|
+| **Annual CV event rate** | 5-8 per 1,000 | 18-35 per 1,000 | 3-4× baseline cost |
+| **CKD prevalence** | 10-15% | 30-40% | Renal monitoring + progression costs |
+| **Prior CV events** | 5-10% | 25-35% | Secondary prevention costs |
+| **ER visits/year** | 0.2 | 0.6-0.8 | 3× acute care utilization |
+| **Hospitalizations/year** | 0.05 | 0.15-0.20 | 3-4× inpatient costs |
+
+**Key Insight:** High baseline costs = large potential cost offsets from effective treatment
+
+### Primary Aldosteronism — The IXA-001 Sweet Spot
+
+**15-20% of resistant HTN patients have primary aldosteronism** (PA) — the core target for aldosterone synthase inhibitors:
+
+| Factor | Non-PA Patients | PA Patients | IXA-001 Implication |
+|--------|-----------------|-------------|---------------------|
+| **Prevalence** | 83% | 17% | Key responder subgroup |
+| **BP response to IXA-001** | Standard | **+30% enhanced** | Greater event reduction |
+| **HF risk** | 1.0× | 1.4× | Higher event cost offset |
+| **CKD risk** | 1.0× | 1.3× | Higher renal cost offset |
+
+The model includes a **Primary Aldosteronism subgroup** in `SubgroupDefinitions` with:
+- 30% enhanced treatment effect modifier for IXA-001
+- Higher baseline event rates (reflecting aldosterone-mediated organ damage)
+- Greater cost offsets due to enhanced treatment response
+
+### Why Payers Should Care
+
+1. **Identifiable from claims data**: ICD-10 codes, ≥3 antihypertensives, uncontrolled BP
+2. **High PMPM contribution**: Small population (~1.1%) but ~3-4% of cardiovascular spend
+3. **Currently undertreated**: Limited effective 4th-line options with acceptable safety
+4. **Measurable outcomes**: Clear endpoints for outcomes-based contracts
+
+---
+
 ## Quick Start with Docker
 
 The fastest way to get started is using Docker. Choose your platform below.

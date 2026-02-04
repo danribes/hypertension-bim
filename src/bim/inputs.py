@@ -35,6 +35,7 @@ class SubgroupType(Enum):
     CKD_STAGE = "ckd_stage"
     PRIOR_CV = "prior_cv"
     DIABETES = "diabetes"
+    PRIMARY_ALDOSTERONISM = "primary_aldosteronism"  # Key target for IXA-001
 
 
 class UptakeScenario(Enum):
@@ -648,6 +649,36 @@ class SubgroupDefinitions:
         ),
     ])
 
+    # Primary Aldosteronism subgroups (KEY TARGET for IXA-001)
+    # 15-20% of resistant HTN patients have primary aldosteronism
+    # These patients are the core target for aldosterone synthase inhibitors
+    primary_aldosteronism_subgroups: List[SubgroupParameters] = field(default_factory=lambda: [
+        SubgroupParameters(
+            name="No Primary Aldosteronism",
+            code="no_primary_aldo",
+            proportion=0.83,  # 83% do not have primary aldosteronism
+            stroke_risk_multiplier=0.95,
+            mi_risk_multiplier=0.95,
+            hf_risk_multiplier=0.90,  # Lower HF risk without PA
+            ckd_risk_multiplier=0.92,  # Lower renal risk without PA
+            death_risk_multiplier=0.95,
+            treatment_effect_modifier=1.0,  # Standard IXA-001 response
+        ),
+        SubgroupParameters(
+            name="With Primary Aldosteronism",
+            code="with_primary_aldo",
+            proportion=0.17,  # 17% of resistant HTN have PA
+            stroke_risk_multiplier=1.15,
+            mi_risk_multiplier=1.10,
+            hf_risk_multiplier=1.40,  # Strong PA-HF association (aldosterone-mediated fibrosis)
+            ckd_risk_multiplier=1.30,  # Strong PA-CKD association (aldosterone-mediated nephropathy)
+            death_risk_multiplier=1.20,
+            treatment_effect_modifier=1.30,  # 30% ENHANCED response to IXA-001 (ASI)
+            # PA patients respond better to aldosterone synthesis blockade
+            # because their HTN is aldosterone-driven
+        ),
+    ])
+
     def get_subgroups(self, subgroup_type: SubgroupType) -> List[SubgroupParameters]:
         """Get subgroups for a given type."""
         mapping = {
@@ -655,6 +686,7 @@ class SubgroupDefinitions:
             SubgroupType.CKD_STAGE: self.ckd_subgroups,
             SubgroupType.PRIOR_CV: self.prior_cv_subgroups,
             SubgroupType.DIABETES: self.diabetes_subgroups,
+            SubgroupType.PRIMARY_ALDOSTERONISM: self.primary_aldosteronism_subgroups,
         }
         return mapping[subgroup_type]
 
