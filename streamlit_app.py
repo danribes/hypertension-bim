@@ -185,6 +185,7 @@ def create_sidebar_inputs() -> ExtendedBIMInputs:
             SubgroupType.CKD_STAGE: "CKD Stage",
             SubgroupType.PRIOR_CV: "Prior CV Events",
             SubgroupType.DIABETES: "Diabetes Status",
+            SubgroupType.PRIMARY_ALDOSTERONISM: "Primary Aldosteronism (IXA-001 Target)",
         }
 
         selected_subgroups = st.sidebar.multiselect(
