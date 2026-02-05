@@ -1,0 +1,124 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#1F4E79', 'primaryTextColor': '#fff', 'primaryBorderColor': '#1F4E79', 'lineColor': '#1F4E79', 'secondaryColor': '#B8D4E8', 'tertiaryColor': '#f0f2f6', 'background': '#ffffff'}}}%%
+
+flowchart LR
+    subgraph pop["ELIGIBLE POPULATION"]
+        direction TB
+        total["<b>Total Plan Population</b><br/>1,000,000 members"]
+        htn["<b>Hypertension</b><br/>32% → 320,000"]
+        resistant["<b>Resistant HTN</b><br/>12% → 38,400"]
+        uncontrolled["<b>Uncontrolled</b><br/>50% → 19,200"]
+        eligible["<b>ELIGIBLE</b><br/>19,200 patients"]
+
+        total --> htn --> resistant --> uncontrolled --> eligible
+    end
+
+    subgraph stratify["STRATIFICATION"]
+        direction TB
+
+        subgraph etiology["Secondary HTN Etiology"]
+            direction TB
+            pa["<b>PA</b><br/>8-12%<br/>1.70× response"]
+            osa["<b>OSA</b><br/>30-50%<br/>1.20× response"]
+            ras["<b>RAS</b><br/>2-5%<br/>1.05× response"]
+            essential["<b>Essential</b><br/>~50%<br/>1.0× response"]
+        end
+
+        subgraph risk["Risk Factors"]
+            direction TB
+            ckd["CKD Stage"]
+            cv["Prior CV"]
+            dm["Diabetes"]
+            age_grp["Age Group"]
+        end
+    end
+
+    subgraph scenarios["UPTAKE SCENARIOS"]
+        direction TB
+        conservative["<b>Conservative</b><br/>Yr1: 5% → Yr5: 15%"]
+        moderate["<b>Moderate</b><br/>Yr1: 10% → Yr5: 30%"]
+        optimistic["<b>Optimistic</b><br/>Yr1: 15% → Yr5: 45%"]
+    end
+
+    subgraph market["MARKET EVOLUTION"]
+        direction TB
+
+        subgraph current["Current World"]
+            direction TB
+            c_spiro["Spironolactone 40%"]
+            c_mra["Other MRA 20%"]
+            c_none["No MRA 40%"]
+        end
+
+        subgraph new["New World (Yr 5)"]
+            direction TB
+            n_ixa["<b>IXA-001</b> 15-45%"]
+            n_spiro["Spiro 25-35%"]
+            n_mra["MRA 10-15%"]
+            n_none["None 20-30%"]
+        end
+    end
+
+    subgraph costs["COST INPUTS"]
+        direction TB
+
+        subgraph drugs["Drug Costs/Year"]
+            direction TB
+            ixa_cost["<b>IXA-001</b><br/>$6,000"]
+            spiro_cost["<b>Spiro</b><br/>$120"]
+        end
+
+        subgraph events["Event Costs"]
+            direction TB
+            mi_ev["MI $45K"]
+            stroke_ev["Stroke $52K"]
+            hf_ev["HF $35K"]
+            esrd_ev["ESRD $90K/yr"]
+        end
+    end
+
+    subgraph calc["BUDGET CALCULATION"]
+        direction TB
+
+        current_cost["<b>Current World Cost</b><br/>Drug + Events"]
+        new_cost["<b>New World Cost</b><br/>Drug + Events<br/>(reduced events)"]
+
+        impact["<b>BUDGET IMPACT</b><br/>= New − Current"]
+
+        current_cost --> impact
+        new_cost --> impact
+    end
+
+    subgraph output["OUTPUTS"]
+        direction TB
+
+        pmpm["<b>PMPM</b><br/>Per Member<br/>Per Month"]
+        total_5yr["<b>5-Year</b><br/>Total Impact"]
+        avoided["<b>Events</b><br/>Avoided"]
+
+        tornado["Tornado<br/>Analysis"]
+        psa_out["PSA<br/>95% CI"]
+        scenarios_out["Scenario<br/>Comparison"]
+    end
+
+    %% Main flow
+    pop --> stratify --> scenarios --> market --> costs --> calc --> output
+
+    %% Styling
+    classDef headerBox fill:#1F4E79,stroke:#1F4E79,color:#fff,font-weight:bold
+    classDef greenBox fill:#90C050,stroke:#1F4E79,color:#000
+    classDef yellowBox fill:#F8D347,stroke:#1F4E79,color:#000
+    classDef orangeBox fill:#F5A623,stroke:#1F4E79,color:#000
+    classDef blueBox fill:#B8D4E8,stroke:#1F4E79,color:#000
+    classDef redBox fill:#C0392B,stroke:#1F4E79,color:#fff
+    classDef whiteBox fill:#ffffff,stroke:#1F4E79,color:#000
+
+    class total,htn,resistant,uncontrolled greenBox
+    class eligible,impact headerBox
+    class pa,osa,ras,essential yellowBox
+    class conservative,moderate,optimistic blueBox
+    class ixa_cost,spiro_cost,n_ixa orangeBox
+    class mi_ev,stroke_ev,hf_ev,esrd_ev redBox
+    class pmpm,total_5yr,avoided,tornado,psa_out,scenarios_out whiteBox
+    class c_spiro,c_mra,c_none,n_spiro,n_mra,n_none whiteBox
+    class ckd,cv,dm,age_grp whiteBox
+    class current_cost,new_cost blueBox

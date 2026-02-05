@@ -33,17 +33,41 @@ class ExcelGenerator:
     Generates user-friendly Excel workbook for BIM.
     """
 
+    # Professional color palette
+    PRIMARY_DARK = "1F4E79"      # Deep blue
+    PRIMARY_MED = "2E75B6"       # Medium blue
+    PRIMARY_LIGHT = "BDD7EE"     # Light blue
+    ACCENT_GREEN = "C6EFCE"      # Success green
+    ACCENT_GREEN_DARK = "006100" # Dark green text
+    ACCENT_YELLOW = "FFEB9C"     # Warning yellow
+    ACCENT_YELLOW_DARK = "9C5700" # Dark yellow text
+    ACCENT_RED = "FFC7CE"        # Error red
+    ACCENT_RED_DARK = "9C0006"   # Dark red text
+    NEUTRAL_LIGHT = "F2F2F2"     # Light gray
+    NEUTRAL_MED = "D9D9D9"       # Medium gray
+
     # Style constants
     HEADER_FILL = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
     HEADER_FONT = Font(color="FFFFFF", bold=True, size=11)
     SUBHEADER_FILL = PatternFill(start_color="2E75B6", end_color="2E75B6", fill_type="solid")
+    SUBHEADER_FONT = Font(color="FFFFFF", bold=True, size=10)
     INPUT_FILL = PatternFill(start_color="FFF2CC", end_color="FFF2CC", fill_type="solid")
     RESULT_FILL = PatternFill(start_color="E2EFDA", end_color="E2EFDA", fill_type="solid")
+    ALT_ROW_FILL = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
+    HIGHLIGHT_FILL = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+    WARNING_FILL = PatternFill(start_color="FFEB9C", end_color="FFEB9C", fill_type="solid")
+    ERROR_FILL = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
     BORDER = Border(
-        left=Side(style='thin'),
-        right=Side(style='thin'),
-        top=Side(style='thin'),
-        bottom=Side(style='thin')
+        left=Side(style='thin', color='B4B4B4'),
+        right=Side(style='thin', color='B4B4B4'),
+        top=Side(style='thin', color='B4B4B4'),
+        bottom=Side(style='thin', color='B4B4B4')
+    )
+    THICK_BORDER = Border(
+        left=Side(style='medium', color='1F4E79'),
+        right=Side(style='medium', color='1F4E79'),
+        top=Side(style='medium', color='1F4E79'),
+        bottom=Side(style='medium', color='1F4E79')
     )
 
     def __init__(self, inputs: BIMInputs, results: Optional[BIMResults] = None):
@@ -57,13 +81,21 @@ class ExcelGenerator:
 
     def _setup_styles(self):
         """Set up named styles for the workbook."""
-        # Header style
+        # Header style (primary)
         header_style = NamedStyle(name="header_style")
         header_style.font = self.HEADER_FONT
         header_style.fill = self.HEADER_FILL
-        header_style.alignment = Alignment(horizontal="center", vertical="center")
+        header_style.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
         header_style.border = self.BORDER
         self.wb.add_named_style(header_style)
+
+        # Subheader style
+        subheader_style = NamedStyle(name="subheader_style")
+        subheader_style.font = self.SUBHEADER_FONT
+        subheader_style.fill = self.SUBHEADER_FILL
+        subheader_style.alignment = Alignment(horizontal="center", vertical="center")
+        subheader_style.border = self.BORDER
+        self.wb.add_named_style(subheader_style)
 
         # Input style
         input_style = NamedStyle(name="input_style")
@@ -79,6 +111,66 @@ class ExcelGenerator:
         result_style.alignment = Alignment(horizontal="right")
         result_style.font = Font(bold=True)
         self.wb.add_named_style(result_style)
+
+        # Highlight style (positive outcome)
+        highlight_style = NamedStyle(name="highlight_style")
+        highlight_style.fill = self.HIGHLIGHT_FILL
+        highlight_style.border = self.BORDER
+        highlight_style.font = Font(bold=True, color=self.ACCENT_GREEN_DARK)
+        highlight_style.alignment = Alignment(horizontal="right")
+        self.wb.add_named_style(highlight_style)
+
+        # Warning style
+        warning_style = NamedStyle(name="warning_style")
+        warning_style.fill = self.WARNING_FILL
+        warning_style.border = self.BORDER
+        warning_style.font = Font(bold=True, color=self.ACCENT_YELLOW_DARK)
+        warning_style.alignment = Alignment(horizontal="right")
+        self.wb.add_named_style(warning_style)
+
+        # Error style
+        error_style = NamedStyle(name="error_style")
+        error_style.fill = self.ERROR_FILL
+        error_style.border = self.BORDER
+        error_style.font = Font(bold=True, color=self.ACCENT_RED_DARK)
+        error_style.alignment = Alignment(horizontal="right")
+        self.wb.add_named_style(error_style)
+
+    def _apply_table_formatting(self, ws, start_row: int, end_row: int, num_cols: int, start_col: int = 1):
+        """Apply consistent table formatting with alternating rows."""
+        for row_idx in range(start_row, end_row + 1):
+            for col_idx in range(start_col, start_col + num_cols):
+                cell = ws.cell(row=row_idx, column=col_idx)
+                cell.border = self.BORDER
+                if row_idx == start_row:
+                    cell.font = self.HEADER_FONT
+                    cell.fill = self.HEADER_FILL
+                    cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+                elif (row_idx - start_row) % 2 == 0:
+                    cell.fill = self.ALT_ROW_FILL
+
+    def _create_title(self, ws, title: str, row: int = 1, col: int = 1, span: int = 4):
+        """Create a formatted title cell."""
+        ws.merge_cells(start_row=row, start_column=col, end_row=row, end_column=col + span - 1)
+        cell = ws.cell(row=row, column=col, value=title)
+        cell.font = Font(bold=True, size=18, color=self.PRIMARY_DARK)
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        return row + 1
+
+    def _create_subtitle(self, ws, subtitle: str, row: int, col: int = 1, span: int = 4):
+        """Create a formatted subtitle cell."""
+        ws.merge_cells(start_row=row, start_column=col, end_row=row, end_column=col + span - 1)
+        cell = ws.cell(row=row, column=col, value=subtitle)
+        cell.font = Font(bold=True, size=12, color=self.PRIMARY_MED)
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        return row + 1
+
+    def _create_section_header(self, ws, header: str, row: int, col: int = 1, span: int = 4):
+        """Create a formatted section header."""
+        ws.merge_cells(start_row=row, start_column=col, end_row=row, end_column=col + span - 1)
+        cell = ws.cell(row=row, column=col, value=header)
+        cell.style = "header_style"
+        return row + 1
 
     def generate(self, output_path: str) -> str:
         """
@@ -113,65 +205,124 @@ class ExcelGenerator:
         """Create cover/instructions sheet."""
         ws = self.wb.create_sheet("Cover", 0)
 
+        # Header banner
+        for col in range(2, 8):
+            for row in range(2, 5):
+                ws.cell(row=row, column=col).fill = self.HEADER_FILL
+
         # Title
-        ws.merge_cells("B2:G3")
-        ws["B2"] = "Budget Impact Model"
-        ws["B2"].font = Font(size=24, bold=True, color="1F4E79")
-        ws["B2"].alignment = Alignment(horizontal="center", vertical="center")
+        ws.merge_cells("B2:G4")
+        ws["B2"] = "BUDGET IMPACT MODEL\nIXA-001 for Resistant Hypertension"
+        ws["B2"].font = Font(size=22, bold=True, color="FFFFFF")
+        ws["B2"].alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-        ws.merge_cells("B4:G4")
-        ws["B4"] = "IXA-001 for Resistant Hypertension"
-        ws["B4"].font = Font(size=16, italic=True)
-        ws["B4"].alignment = Alignment(horizontal="center")
+        # Version badge
+        ws["B5"] = "v4.0"
+        ws["B5"].font = Font(size=10, bold=True, color=self.PRIMARY_DARK)
+        ws["B5"].fill = PatternFill(start_color=self.PRIMARY_LIGHT, end_color=self.PRIMARY_LIGHT, fill_type="solid")
+        ws["B5"].alignment = Alignment(horizontal="center")
 
-        # Model info
-        info_start = 6
+        # Model info section
+        info_start = 7
+        ws.merge_cells(f"B{info_start}:D{info_start}")
+        ws[f"B{info_start}"] = "MODEL INFORMATION"
+        ws[f"B{info_start}"].style = "header_style"
+
         info_items = [
             ("Product:", "IXA-001 (Selective Aldosterone Synthase Inhibitor)"),
             ("Indication:", "Uncontrolled Resistant Hypertension"),
             ("Sponsor:", "Atlantis Pharmaceuticals"),
-            ("Model Version:", "1.0"),
+            ("Model Version:", "4.0 (Dual-Branch Phenotyping)"),
             ("Date:", "February 2026"),
             ("Country:", self.inputs.country.country_name),
         ]
 
         for i, (label, value) in enumerate(info_items):
-            row = info_start + i
+            row = info_start + 1 + i
             ws[f"B{row}"] = label
-            ws[f"B{row}"].font = Font(bold=True)
+            ws[f"B{row}"].font = Font(bold=True, color=self.PRIMARY_DARK)
             ws[f"C{row}"] = value
+            ws[f"B{row}"].border = self.BORDER
+            ws[f"C{row}"].border = self.BORDER
+            if i % 2 == 0:
+                ws[f"B{row}"].fill = self.ALT_ROW_FILL
+                ws[f"C{row}"].fill = self.ALT_ROW_FILL
 
-        # Instructions
-        ws["B14"] = "Quick Start Guide"
-        ws["B14"].font = Font(size=14, bold=True, color="1F4E79")
+        # Quick Start Guide
+        guide_start = info_start + len(info_items) + 3
+        ws.merge_cells(f"B{guide_start}:D{guide_start}")
+        ws[f"B{guide_start}"] = "QUICK START GUIDE"
+        ws[f"B{guide_start}"].style = "header_style"
 
         instructions = [
-            "1. Go to 'Input Dashboard' to modify key inputs",
-            "2. Review 'Population' sheet for patient cascade",
-            "3. Review 'Market Dynamics' for uptake assumptions",
-            "4. View 'Results Dashboard' for budget impact summary",
-            "5. Compare scenarios in 'Scenario Comparison' sheet",
-            "6. Run sensitivity analysis in 'Sensitivity' sheet",
+            ("1.", "Input Dashboard", "Modify key model inputs"),
+            ("2.", "Population", "Review patient cascade"),
+            ("3.", "Market Dynamics", "Review uptake assumptions"),
+            ("4.", "Results Dashboard", "View budget impact summary"),
+            ("5.", "Scenario Comparison", "Compare uptake scenarios"),
+            ("6.", "Sensitivity", "Run sensitivity analysis"),
         ]
 
-        for i, instruction in enumerate(instructions):
-            ws[f"B{16 + i}"] = instruction
+        for i, (num, sheet, desc) in enumerate(instructions):
+            row = guide_start + 1 + i
+            ws[f"B{row}"] = num
+            ws[f"B{row}"].font = Font(bold=True, color=self.PRIMARY_MED)
+            ws[f"C{row}"] = sheet
+            ws[f"C{row}"].font = Font(bold=True)
+            ws[f"D{row}"] = desc
+            ws[f"D{row}"].font = Font(italic=True, color="666666")
 
-        # Key messages
-        ws["B24"] = "Key Model Outputs"
-        ws["B24"].font = Font(size=14, bold=True, color="1F4E79")
+        # Key outputs section
+        outputs_start = guide_start + len(instructions) + 3
+        ws.merge_cells(f"B{outputs_start}:D{outputs_start}")
+        ws[f"B{outputs_start}"] = "KEY MODEL OUTPUTS"
+        ws[f"B{outputs_start}"].style = "header_style"
 
         if self.results:
             currency = self.inputs.country.currency_symbol
-            ws["B26"] = f"Eligible Patients: {self.results.total_eligible_patients:,}"
-            ws["B27"] = f"5-Year Budget Impact: {currency}{self.results.total_budget_impact_5yr:,.0f}"
-            ws["B28"] = f"Year 1 PMPM: {currency}{self.results.pmpm_impact_year1:.2f}"
-            ws["B29"] = f"Year 5 PMPM: {currency}{self.results.pmpm_impact_year5:.2f}"
+            output_row = outputs_start + 1
+            outputs = [
+                ("Eligible Patients", f"{self.results.total_eligible_patients:,}"),
+                ("5-Year Budget Impact", f"{currency}{self.results.total_budget_impact_5yr:,.0f}"),
+                ("Year 1 PMPM", f"{currency}{self.results.pmpm_impact_year1:.2f}"),
+                ("Year 5 PMPM", f"{currency}{self.results.pmpm_impact_year5:.2f}"),
+            ]
+            for i, (label, value) in enumerate(outputs):
+                row = output_row + i
+                ws[f"B{row}"] = label
+                ws[f"B{row}"].font = Font(bold=True)
+                ws[f"C{row}"] = value
+                ws[f"C{row}"].style = "result_style"
+                ws[f"B{row}"].border = self.BORDER
+                ws[f"C{row}"].border = self.BORDER
+
+        # Color legend
+        legend_start = outputs_start + 7
+        ws.merge_cells(f"B{legend_start}:D{legend_start}")
+        ws[f"B{legend_start}"] = "COLOR LEGEND"
+        ws[f"B{legend_start}"].style = "subheader_style"
+
+        legend_items = [
+            (self.INPUT_FILL, "Editable Input"),
+            (self.RESULT_FILL, "Calculated Result"),
+            (self.HIGHLIGHT_FILL, "Positive Outcome"),
+            (self.WARNING_FILL, "Attention Required"),
+        ]
+        for i, (fill, desc) in enumerate(legend_items):
+            row = legend_start + 1 + i
+            ws[f"B{row}"].fill = fill
+            ws[f"B{row}"].border = self.BORDER
+            ws[f"C{row}"] = desc
+            ws[f"C{row}"].font = Font(size=10)
 
         # Set column widths
         ws.column_dimensions["A"].width = 3
         ws.column_dimensions["B"].width = 25
         ws.column_dimensions["C"].width = 45
+        ws.column_dimensions["D"].width = 30
+
+        # Freeze pane
+        ws.freeze_panes = "A6"
 
     def _create_input_dashboard(self):
         """Create the main input dashboard."""
@@ -537,38 +688,58 @@ class ExcelGenerator:
 
         currency = self.inputs.country.currency_symbol
 
+        # Header banner
+        for col in range(2, 9):
+            ws.cell(row=2, column=col).fill = self.HEADER_FILL
+
         # Title
         ws.merge_cells("B2:H2")
         ws["B2"] = "BUDGET IMPACT RESULTS"
-        ws["B2"].font = Font(size=18, bold=True, color="1F4E79")
+        ws["B2"].font = Font(size=18, bold=True, color="FFFFFF")
+        ws["B2"].alignment = Alignment(horizontal="center", vertical="center")
 
-        ws["B3"] = f"Scenario: {self.results.scenario.value.capitalize()}"
-        ws["B3"].font = Font(size=12, italic=True)
+        ws.merge_cells("B3:H3")
+        ws["B3"] = f"Scenario: {self.results.scenario.value.capitalize()} | Country: {self.inputs.country.country_name}"
+        ws["B3"].font = Font(size=11, italic=True, color=self.PRIMARY_MED)
+        ws["B3"].alignment = Alignment(horizontal="center")
 
-        # Key metrics box
+        # Key metrics box with styled cards
+        ws.merge_cells("B5:D5")
         ws["B5"] = "KEY METRICS"
         ws["B5"].style = "header_style"
-        ws.merge_cells("B5:D5")
 
         metrics = [
-            ("Eligible Patients", f"{self.results.total_eligible_patients:,}"),
-            ("5-Year Budget Impact", f"{currency}{self.results.total_budget_impact_5yr:,.0f}"),
-            ("Average Annual Impact", f"{currency}{self.results.average_annual_impact:,.0f}"),
-            ("Year 1 PMPM", f"{currency}{self.results.pmpm_impact_year1:.2f}"),
-            ("Year 5 PMPM", f"{currency}{self.results.pmpm_impact_year5:.2f}"),
-            ("Cost per IXA-001 Patient", f"{currency}{self.results.cost_per_ixa_patient:,.0f}"),
-            ("Incremental Cost/Patient", f"{currency}{self.results.incremental_cost_per_ixa_patient:,.0f}"),
+            ("Eligible Patients", f"{self.results.total_eligible_patients:,}", False),
+            ("5-Year Budget Impact", f"{currency}{self.results.total_budget_impact_5yr:,.0f}", True),
+            ("Average Annual Impact", f"{currency}{self.results.average_annual_impact:,.0f}", False),
+            ("Year 1 PMPM", f"{currency}{self.results.pmpm_impact_year1:.2f}", False),
+            ("Year 5 PMPM", f"{currency}{self.results.pmpm_impact_year5:.2f}", False),
+            ("Cost per IXA-001 Patient", f"{currency}{self.results.cost_per_ixa_patient:,.0f}", False),
+            ("Incremental Cost/Patient", f"{currency}{self.results.incremental_cost_per_ixa_patient:,.0f}", False),
         ]
 
-        for i, (label, value) in enumerate(metrics):
+        for i, (label, value, highlight) in enumerate(metrics):
             row = 6 + i
-            ws.cell(row=row, column=2, value=label)
-            ws.cell(row=row, column=3, value=value).style = "result_style"
+            cell_label = ws.cell(row=row, column=2, value=label)
+            cell_label.font = Font(bold=True, color=self.PRIMARY_DARK)
+            cell_label.border = self.BORDER
+            cell_value = ws.cell(row=row, column=3, value=value)
+            cell_value.border = self.BORDER
+            cell_value.alignment = Alignment(horizontal="right")
+            if highlight:
+                cell_value.style = "highlight_style"
+                cell_value.font = Font(bold=True, size=12, color=self.ACCENT_GREEN_DARK)
+            else:
+                cell_value.style = "result_style"
+            if i % 2 == 0:
+                cell_label.fill = self.ALT_ROW_FILL
+                if not highlight:
+                    cell_value.fill = self.ALT_ROW_FILL
 
         # Year-by-year table
+        ws.merge_cells("B15:G15")
         ws["B15"] = "YEAR-BY-YEAR BUDGET IMPACT"
         ws["B15"].style = "header_style"
-        ws.merge_cells("B15:H15")
 
         headers = ["Year", "IXA-001 Patients", "Budget - Current", "Budget - New", "Budget Impact", "PMPM"]
         for i, header in enumerate(headers):
@@ -576,19 +747,27 @@ class ExcelGenerator:
 
         for i, yr in enumerate(self.results.yearly_results):
             row = 17 + i
-            ws.cell(row=row, column=2, value=yr.year)
+            ws.cell(row=row, column=2, value=yr.year).border = self.BORDER
             ws.cell(row=row, column=3, value=yr.patients_ixa_001).number_format = "#,##0"
             ws.cell(row=row, column=4, value=yr.cost_current_world).number_format = f'"{currency}"#,##0'
             ws.cell(row=row, column=5, value=yr.cost_new_world).number_format = f'"{currency}"#,##0'
             ws.cell(row=row, column=6, value=yr.budget_impact).number_format = f'"{currency}"#,##0'
             pmpm = yr.budget_impact / self.inputs.population.total_population / 12
             ws.cell(row=row, column=7, value=pmpm).number_format = f'"{currency}"0.00'
+            # Apply alternating row colors and borders
+            for col in range(2, 8):
+                ws.cell(row=row, column=col).border = self.BORDER
+                if i % 2 == 0:
+                    ws.cell(row=row, column=col).fill = self.ALT_ROW_FILL
 
-        # Total row
+        # Total row with highlight
         row = 17 + len(self.results.yearly_results)
-        ws.cell(row=row, column=2, value="TOTAL").font = Font(bold=True)
-        ws.cell(row=row, column=6, value=self.results.total_budget_impact_5yr).style = "result_style"
-        ws.cell(row=row, column=6).number_format = f'"{currency}"#,##0'
+        for col in range(2, 8):
+            ws.cell(row=row, column=col).fill = self.RESULT_FILL
+            ws.cell(row=row, column=col).border = self.BORDER
+            ws.cell(row=row, column=col).font = Font(bold=True)
+        ws.cell(row=row, column=2, value="TOTAL")
+        ws.cell(row=row, column=6, value=self.results.total_budget_impact_5yr).number_format = f'"{currency}"#,##0'
 
         # Budget impact chart
         chart = BarChart()

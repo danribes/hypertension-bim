@@ -36,6 +36,7 @@ class SubgroupType(Enum):
     PRIOR_CV = "prior_cv"
     DIABETES = "diabetes"
     PRIMARY_ALDOSTERONISM = "primary_aldosteronism"  # Key target for IXA-001
+    SECONDARY_HTN_ETIOLOGY = "secondary_htn_etiology"  # PA, RAS, Pheo, OSA, Essential
 
 
 class UptakeScenario(Enum):
@@ -668,14 +669,74 @@ class SubgroupDefinitions:
             name="With Primary Aldosteronism",
             code="with_primary_aldo",
             proportion=0.17,  # 17% of resistant HTN have PA
-            stroke_risk_multiplier=1.15,
-            mi_risk_multiplier=1.10,
-            hf_risk_multiplier=1.40,  # Strong PA-HF association (aldosterone-mediated fibrosis)
-            ckd_risk_multiplier=1.30,  # Strong PA-CKD association (aldosterone-mediated nephropathy)
-            death_risk_multiplier=1.20,
-            treatment_effect_modifier=1.30,  # 30% ENHANCED response to IXA-001 (ASI)
+            stroke_risk_multiplier=1.50,  # Updated to match CEA model (Monticone 2018)
+            mi_risk_multiplier=1.40,  # Updated to match CEA model
+            hf_risk_multiplier=2.05,  # Strong PA-HF association (Monticone 2018: HR 2.05)
+            ckd_risk_multiplier=1.80,  # Strong PA-CKD association (Catena 2008)
+            death_risk_multiplier=1.60,  # Updated to match CEA model
+            treatment_effect_modifier=1.70,  # 70% ENHANCED response to IXA-001 (ASI)
             # PA patients respond better to aldosterone synthesis blockade
             # because their HTN is aldosterone-driven
+        ),
+    ])
+
+    # Secondary HTN Etiology subgroups (v4.0 - treatment response varies by cause)
+    # Based on CEA model: PA, RAS, Pheo, OSA, Essential
+    secondary_htn_etiology_subgroups: List[SubgroupParameters] = field(default_factory=lambda: [
+        SubgroupParameters(
+            name="Primary Aldosteronism (PA)",
+            code="pa",
+            proportion=0.17,  # 17% of resistant HTN
+            mi_risk_multiplier=1.40,
+            stroke_risk_multiplier=1.50,
+            hf_risk_multiplier=2.05,  # Monticone 2018
+            ckd_risk_multiplier=1.80,
+            death_risk_multiplier=1.60,
+            treatment_effect_modifier=1.70,  # 70% enhanced IXA-001 response (optimal target)
+        ),
+        SubgroupParameters(
+            name="Renal Artery Stenosis (RAS)",
+            code="ras",
+            proportion=0.11,  # ~11% of resistant HTN
+            mi_risk_multiplier=1.35,
+            stroke_risk_multiplier=1.40,
+            hf_risk_multiplier=1.45,
+            ckd_risk_multiplier=1.80,
+            death_risk_multiplier=1.50,
+            treatment_effect_modifier=1.05,  # Minimal enhanced response
+        ),
+        SubgroupParameters(
+            name="Pheochromocytoma (Pheo)",
+            code="pheo",
+            proportion=0.01,  # ~1% of resistant HTN (rare)
+            mi_risk_multiplier=1.80,
+            stroke_risk_multiplier=1.60,
+            hf_risk_multiplier=1.70,
+            ckd_risk_multiplier=1.10,
+            death_risk_multiplier=2.00,
+            treatment_effect_modifier=0.40,  # REDUCED response - contraindicated
+        ),
+        SubgroupParameters(
+            name="Obstructive Sleep Apnea (OSA)",
+            code="osa",
+            proportion=0.15,  # ~15% severe OSA as primary driver
+            mi_risk_multiplier=1.15,
+            stroke_risk_multiplier=1.25,
+            hf_risk_multiplier=1.20,
+            ckd_risk_multiplier=1.05,
+            death_risk_multiplier=1.15,
+            treatment_effect_modifier=1.20,  # Modest enhanced response
+        ),
+        SubgroupParameters(
+            name="Essential HTN (No Secondary Cause)",
+            code="essential",
+            proportion=0.56,  # ~56% have no identified secondary cause
+            mi_risk_multiplier=1.0,
+            stroke_risk_multiplier=1.0,
+            hf_risk_multiplier=1.0,
+            ckd_risk_multiplier=1.0,
+            death_risk_multiplier=1.0,
+            treatment_effect_modifier=1.0,  # Baseline response
         ),
     ])
 
@@ -687,6 +748,7 @@ class SubgroupDefinitions:
             SubgroupType.PRIOR_CV: self.prior_cv_subgroups,
             SubgroupType.DIABETES: self.diabetes_subgroups,
             SubgroupType.PRIMARY_ALDOSTERONISM: self.primary_aldosteronism_subgroups,
+            SubgroupType.SECONDARY_HTN_ETIOLOGY: self.secondary_htn_etiology_subgroups,
         }
         return mapping[subgroup_type]
 

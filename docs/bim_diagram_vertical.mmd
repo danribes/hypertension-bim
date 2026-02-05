@@ -1,0 +1,130 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#1F4E79', 'primaryTextColor': '#fff', 'primaryBorderColor': '#1F4E79', 'lineColor': '#1F4E79', 'secondaryColor': '#B8D4E8', 'tertiaryColor': '#f0f2f6', 'background': '#ffffff'}}}%%
+
+flowchart TB
+    subgraph pop["ELIGIBLE POPULATION FUNNEL"]
+        direction TB
+        total["Total Plan Population<br/><i>e.g., 1,000,000 members</i>"]
+        htn["Hypertension Prevalence<br/><i>~32% of population</i>"]
+        resistant["Resistant HTN<br/><i>~12% of HTN patients</i>"]
+        uncontrolled["Uncontrolled on Current Tx<br/><i>~50% of resistant</i>"]
+        eligible["<b>Eligible for IXA-001</b><br/><i>~19,200 patients</i>"]
+
+        total --> htn --> resistant --> uncontrolled --> eligible
+    end
+
+    subgraph stratify["SUBGROUP STRATIFICATION"]
+        direction TB
+        strat_header["Patient Stratification"]
+
+        subgraph etiology["Secondary HTN Etiology"]
+            pa["Primary Aldosteronism<br/><i>8-12% | 1.70× response</i>"]
+            osa["OSA<br/><i>30-50% | 1.20× response</i>"]
+            ras["RAS<br/><i>2-5% | 1.05× response</i>"]
+            essential["Essential HTN<br/><i>~50% | 1.0× response</i>"]
+        end
+
+        subgraph risk["Risk Categories"]
+            ckd["CKD Stage"]
+            cv["Prior CV Events"]
+            dm["Diabetes Status"]
+            age_grp["Age Groups"]
+        end
+    end
+
+    subgraph scenarios["UPTAKE SCENARIOS (5-Year)"]
+        direction LR
+        conservative["<b>Conservative</b><br/>Year 1: 5%<br/>Year 5: 15%"]
+        moderate["<b>Moderate</b><br/>Year 1: 10%<br/>Year 5: 30%"]
+        optimistic["<b>Optimistic</b><br/>Year 1: 15%<br/>Year 5: 45%"]
+    end
+
+    subgraph market["MARKET SHARE EVOLUTION"]
+        direction TB
+        current["<b>Current World</b><br/>(No IXA-001)"]
+        new["<b>New World</b><br/>(With IXA-001)"]
+
+        subgraph current_mix["Current Mix"]
+            c_spiro["Spironolactone<br/>40%"]
+            c_mra["Other MRA<br/>20%"]
+            c_none["No MRA Tx<br/>40%"]
+        end
+
+        subgraph new_mix["New Mix (Year 5)"]
+            n_ixa["IXA-001<br/>15-45%"]
+            n_spiro["Spironolactone<br/>25-35%"]
+            n_mra["Other MRA<br/>10-15%"]
+            n_none["No MRA Tx<br/>20-30%"]
+        end
+    end
+
+    subgraph costs["COST COMPONENTS"]
+        direction TB
+        drug_costs["<b>Drug Costs</b>"]
+        event_costs["<b>Event Costs</b>"]
+
+        subgraph drugs["Annual Drug Costs"]
+            ixa_cost["IXA-001<br/>$6,000/year"]
+            spiro_cost["Spironolactone<br/>$120/year"]
+        end
+
+        subgraph events["Clinical Events"]
+            mi_ev["MI: $45,000"]
+            stroke_ev["Stroke: $52,000"]
+            hf_ev["HF: $35,000"]
+            esrd_ev["ESRD: $90,000/yr"]
+        end
+    end
+
+    subgraph calc["BUDGET IMPACT CALCULATION"]
+        direction TB
+
+        year_calc["<b>Per-Year Calculation</b>"]
+
+        cost_current["Cost (Current World)<br/><i>Patients × Current Mix × Drug Costs<br/>+ Event Rates × Event Costs</i>"]
+        cost_new["Cost (New World)<br/><i>Patients × New Mix × Drug Costs<br/>+ Reduced Event Rates × Event Costs</i>"]
+
+        impact["<b>Budget Impact</b><br/><i>= New World − Current World</i>"]
+
+        cost_current --> impact
+        cost_new --> impact
+    end
+
+    subgraph output["MODEL OUTPUTS"]
+        direction TB
+
+        primary["<b>Primary Outputs</b>"]
+        pmpm["PMPM Impact<br/><i>Per Member Per Month</i>"]
+        total_5yr["5-Year Total Impact"]
+        events_avoided["Events Avoided"]
+
+        secondary["<b>Sensitivity Outputs</b>"]
+        tornado["Tornado Diagram<br/><i>Key Drivers</i>"]
+        psa_out["PSA Distribution<br/><i>95% CI</i>"]
+        scenario_comp["Scenario Comparison"]
+    end
+
+    %% Main flow connections
+    pop --> stratify
+    stratify --> scenarios
+    scenarios --> market
+    market --> costs
+    costs --> calc
+    calc --> output
+
+    %% Styling
+    classDef headerBox fill:#1F4E79,stroke:#1F4E79,color:#fff,font-weight:bold
+    classDef greenBox fill:#90C050,stroke:#1F4E79,color:#000
+    classDef yellowBox fill:#F8D347,stroke:#1F4E79,color:#000
+    classDef orangeBox fill:#F5A623,stroke:#1F4E79,color:#000
+    classDef blueBox fill:#B8D4E8,stroke:#1F4E79,color:#000
+    classDef redBox fill:#C0392B,stroke:#1F4E79,color:#fff
+    classDef whiteBox fill:#ffffff,stroke:#1F4E79,color:#000
+
+    class total,htn,resistant,uncontrolled greenBox
+    class eligible headerBox
+    class pa,osa,ras,essential yellowBox
+    class conservative,moderate,optimistic blueBox
+    class ixa_cost,spiro_cost orangeBox
+    class mi_ev,stroke_ev,hf_ev,esrd_ev redBox
+    class impact headerBox
+    class pmpm,total_5yr,events_avoided,tornado,psa_out,scenario_comp whiteBox

@@ -186,6 +186,7 @@ def create_sidebar_inputs() -> ExtendedBIMInputs:
             SubgroupType.PRIOR_CV: "Prior CV Events",
             SubgroupType.DIABETES: "Diabetes Status",
             SubgroupType.PRIMARY_ALDOSTERONISM: "Primary Aldosteronism (IXA-001 Target)",
+            SubgroupType.SECONDARY_HTN_ETIOLOGY: "Secondary HTN Etiology (Treatment Response)",
         }
 
         selected_subgroups = st.sidebar.multiselect(
@@ -487,9 +488,44 @@ def generate_excel_download(inputs: ExtendedBIMInputs, extended_results) -> Byte
 
 def main():
     """Main application entry point."""
-    # Header
+    # Header with version
     st.markdown('<p class="main-header">Budget Impact Model</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">IXA-001 for Resistant Hypertension</p>', unsafe_allow_html=True)
+
+    # Version header with feature badges
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #1F4E79 0%, #2E86AB 100%); padding: 0.8rem 1.2rem; border-radius: 8px; margin-bottom: 1rem;">
+        <span style="color: white; font-weight: bold;">v4.0</span>
+        <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 10px;">Dual-Branch Phenotyping</span>
+        <span style="background: #ffc107; color: black; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 5px;">Secondary HTN Etiology</span>
+        <span style="background: #17a2b8; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 5px;">PA Target Population</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Budget Impact Model Architecture Diagram
+    with st.expander("📐 Budget Impact Model Architecture", expanded=False):
+        st.markdown("""
+        This diagram shows the complete Budget Impact Model structure, from eligible population
+        identification through market share evolution to final budget impact calculation.
+        """)
+        diagram_path = Path(__file__).parent / "docs" / "bim_diagram_vertical.png"
+        if diagram_path.exists():
+            st.image(str(diagram_path), use_container_width=True)
+        else:
+            st.warning("Model diagram not found. Please ensure docs/bim_diagram_vertical.png exists.")
+
+        st.markdown("""
+        **Key Model Components:**
+
+        | Component | Description |
+        |-----------|-------------|
+        | **Population Funnel** | Filters total plan population through HTN prevalence → Resistant HTN → Uncontrolled |
+        | **Subgroup Stratification** | Segments by secondary HTN etiology (PA, OSA, RAS, Essential) and risk factors |
+        | **Uptake Scenarios** | Conservative (15%), Moderate (30%), Optimistic (45%) Year-5 market share |
+        | **Market Evolution** | Tracks shift from current world (no IXA-001) to new world across 5 years |
+        | **Cost Components** | Drug costs (IXA-001 vs Spironolactone) + Event costs (MI, Stroke, HF, ESRD) |
+        | **Budget Calculation** | New World costs − Current World costs = Net Budget Impact |
+        """)
 
     # Create sidebar inputs
     inputs = create_sidebar_inputs()
@@ -507,12 +543,13 @@ def main():
     currency_symbol = inputs.country.currency_symbol
 
     # Main content area
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📊 Results",
         "📈 Scenarios",
         "👥 Subgroups",
         "🏥 Events",
-        "🎲 PSA"
+        "🎲 PSA",
+        "🧬 HTN Etiology"
     ])
 
     with tab1:
@@ -578,6 +615,57 @@ def main():
 
         if st.button("Run PSA", type="primary"):
             run_psa_analysis(inputs, psa_iterations)
+
+    with tab6:
+        st.markdown("### Secondary Hypertension Etiology Analysis")
+
+        st.markdown("""
+        The model stratifies patients by secondary hypertension etiology to capture
+        differential treatment responses to IXA-001. Each etiology has a unique
+        treatment effect modifier that adjusts the expected clinical benefit.
+        """)
+
+        import pandas as pd
+
+        # Treatment response modifiers table
+        st.markdown("#### Treatment Response Modifiers by Etiology")
+        etiology_data = pd.DataFrame({
+            "Etiology": ["Primary Aldosteronism (PA)", "Renal Artery Stenosis (RAS)",
+                        "Pheochromocytoma (Pheo)", "Obstructive Sleep Apnea (OSA)", "Essential HTN"],
+            "IXA-001 Response": ["1.70× (Enhanced)", "1.05× (Slight)", "0.40× (Contraindicated)",
+                                "1.20× (Moderate)", "1.00× (Baseline)"],
+            "Rationale": [
+                "Direct aldosterone pathway targeting - optimal response",
+                "Renovascular cause - limited benefit from MRA",
+                "Catecholamine-driven - MRA contraindicated",
+                "Aldosterone elevation common - moderate benefit",
+                "Standard response - no specific enhancement"
+            ],
+            "Prevalence": ["8-12%", "2-5%", "0.1-0.6%", "30-50%", "~50%"]
+        })
+        st.dataframe(etiology_data, use_container_width=True, hide_index=True)
+
+        st.markdown("---")
+
+        # PA-specific risk modifiers
+        st.markdown("#### Primary Aldosteronism Baseline Risk Modifiers")
+        st.markdown("""
+        Patients with PA have elevated baseline risk for cardiovascular and renal events
+        due to direct aldosterone-mediated organ damage (independent of BP).
+        """)
+
+        pa_risk_data = pd.DataFrame({
+            "Event": ["Myocardial Infarction", "Stroke", "Heart Failure", "ESRD", "Atrial Fibrillation", "CV Death"],
+            "Risk Multiplier": ["1.40×", "1.50×", "2.05×", "1.80×", "3.00×", "1.60×"],
+            "Source": ["Monticone 2018", "Monticone 2018", "Monticone 2018", "Model estimate", "Monticone 2018", "Model estimate"]
+        })
+        st.dataframe(pa_risk_data, use_container_width=True, hide_index=True)
+
+        st.info("""
+        💡 **Budget Impact Implication**: PA patients represent the highest-value subgroup for IXA-001
+        due to their elevated baseline event risk combined with enhanced treatment response (1.70×).
+        Events avoided in this population generate substantial cost offsets.
+        """)
 
     # Download section
     st.divider()
