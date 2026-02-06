@@ -43,7 +43,15 @@ htmlcov/
 
 # Output files
 *.xlsx
+*.xlsb
+*.xls
 output/
+
+# Documents (keep in separate location)
+*.pdf
+*.docx
+*.doc
+*.pptx
 
 # Logs
 *.log
