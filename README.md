@@ -1,10 +1,20 @@
+<div align="center">
+
 # Budget Impact Model (BIM) for IXA-001
 
-## Resistant Hypertension - Payer Analysis Tool
+**Payer Budget Impact Analysis for IXA-001 in Resistant Hypertension**
 
-**Version:** 1.0
-**Date:** February 2026
+![Python](https://img.shields.io/badge/python-3.8%2B-blue?logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/streamlit-1.28%2B-FF4B4B?logo=streamlit&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/license-proprietary-red)
+![Version](https://img.shields.io/badge/version-1.0-green)
+
+*A comprehensive budget impact analysis tool for healthcare payers evaluating IXA-001 (aldosterone synthase inhibitor) formulary addition for resistant hypertension. Features multi-country support, subgroup analysis, probabilistic sensitivity analysis, and Excel report generation.*
+
 **Sponsor:** Atlantis Pharmaceuticals
+
+</div>
 
 ---
 
@@ -739,6 +749,25 @@ When updating either model, ensure consistency:
 
 ---
 
+## Documentation
+
+Complete HTA documentation suite available in `docs/`:
+
+| Document | Description |
+|----------|-------------|
+| [Technical Documentation](docs/IXA-001_BIM_Technical_Documentation.md) | Master technical guide |
+| [Population & Epidemiology](docs/population_epidemiology_technical_report.md) | Population cascade, prevalence |
+| [Market Dynamics](docs/market_dynamics_technical_report.md) | Uptake curves, displacement |
+| [Cost Inputs](docs/cost_inputs_technical_report.md) | Drug/event/monitoring costs |
+| [Clinical Events](docs/clinical_events_technical_report.md) | Event rates, RRRs, offsets |
+| [Treatment Persistence](docs/treatment_persistence_technical_report.md) | Weibull adherence curves |
+| [Subgroup Analysis](docs/subgroup_analysis_technical_report.md) | PA, CKD, age, diabetes |
+| [Sensitivity Analysis](docs/sensitivity_analysis_technical_report.md) | DSA, PSA, scenarios |
+
+All reports are ISPOR BIA compliant (10/10 items).
+
+---
+
 ## Support
 
 For questions about this model, contact:
@@ -747,4 +776,6 @@ For questions about this model, contact:
 
 ---
 
-*Model developed: February 2026*
+**Version:** 1.0<br>
+**Last Updated:** February 2026<br>
+**Compliance:** ISPOR BIA Guidelines (10/10 items)
