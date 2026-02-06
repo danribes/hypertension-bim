@@ -25,6 +25,7 @@
 - [Installation (Local)](#installation-local)
 - [Model Structure](#model-structure)
 - [Enhanced Features](#enhanced-features)
+- [Cardiac-Renal Comorbidity in Budget Impact](#cardiac-renal-comorbidity-in-budget-impact)
 - [Input Parameters](#input-parameters)
 - [Modifying Inputs](#modifying-inputs)
 - [Output Description](#output-description)
@@ -344,6 +345,56 @@ The enhanced Excel report includes 13 sheets:
 11. **Event Analysis** - Clinical events and costs avoided
 12. **PSA Results** - Monte Carlo simulation results
 13. Documentation
+
+---
+
+## Cardiac-Renal Comorbidity in Budget Impact
+
+Resistant hypertension patients frequently present with **concurrent cardiac and renal complications**. The BIM captures this dual burden through its subgroup modifier system, which adjusts baseline event rates and cost offsets for high-risk populations.
+
+### How the BIM Captures Dual-Burden Patients
+
+Unlike the companion microsimulation (which tracks cardiac and renal states independently at the individual level), the BIM uses **static multiplicative subgroup modifiers** applied at the cohort level:
+
+| Subgroup | Cardiac Events (MI, Stroke, HF, AF) | Renal Events (ESRD) | Mechanism |
+|----------|--------------------------------------|----------------------|-----------|
+| **CKD Stage 3-4** | 1.30-1.80× baseline | 3.50× baseline | eGFR-driven risk amplification |
+| **Primary Aldosteronism** | 1.40-3.00× baseline | 1.80× baseline | Aldosterone-mediated organ damage |
+| **Diabetic** | 1.30-1.60× baseline | 1.80× baseline | Cardiorenal metabolic syndrome |
+| **Age ≥65** | 1.50-2.20× baseline | 1.20× baseline | Age-related vascular stiffening |
+
+### Cross-Pathway Interactions
+
+The BIM recognises that cardiac and renal risks are interlinked in resistant hypertension:
+
+| Interaction | How It Is Modelled | Limitation |
+|-------------|-------------------|------------|
+| CKD → increased CV events | CKD subgroup has elevated MI (1.50×), Stroke (1.30×), HF (1.80×) modifiers | Static multipliers; no dynamic eGFR trajectory |
+| PA → cardiac + renal damage | PA subgroup has both elevated cardiac (HF 2.05×, AF 3.00×) and renal (ESRD 1.80×) rates | No concurrent state tracking |
+| Diabetes → cardiorenal amplification | Diabetes subgroup applies cardiac (MI 1.40×, HF 1.60×) and renal (ESRD 1.80×) modifiers | No HbA1c-dependent progression |
+| ESRD → CV mortality | ESRD event costs include CV-mediated mortality component ($125,000 Year 1) | No explicit post-ESRD CV death rate |
+
+### What Is Not Modelled
+
+The BIM's cohort-based approach does not capture certain dynamic interactions that are handled by the companion microsimulation:
+
+- **Concurrent state tracking**: Patients are not simultaneously tracked in cardiac and renal states
+- **Dynamic eGFR decline**: CKD progression is captured as a single event rate, not a continuous trajectory
+- **AKI following cardiac events**: No acute kidney injury modelling post-MI or post-HF
+- **Cardiorenal syndrome**: No bidirectional feedback between worsening cardiac and renal function
+- **SGLT2i dual-benefit**: No explicit modelling of SGLT2i as a concurrent cardio-renal protective agent
+- **Treatment escalation for dual-burden patients**: Treatment effects are BP-driven; no differential intensification for patients with both cardiac and renal complications
+
+### Treatment for Dual-Burden Patients
+
+The BIM's treatment model is driven by **market uptake assumptions** rather than individual clinical decisions:
+
+- **IXA-001 benefit is applied uniformly** within each subgroup — all CKD patients receive the same relative risk reduction regardless of concurrent cardiac status
+- **Cost offsets are additive**: Avoided cardiac events and avoided renal events are summed independently
+- **No treatment switching based on dual burden**: Displacement from spironolactone to IXA-001 follows the same uptake curve for all subgroups
+- **Subgroup modifiers are the primary mechanism** for capturing higher value in dual-burden populations (e.g., PA patients with CKD have both sets of multipliers reflected in the PA subgroup rates)
+
+For detailed individual-level dual-pathway modelling, see the **[Companion Microsimulation Model](#companion-model-cost-effectiveness)**.
 
 ---
 

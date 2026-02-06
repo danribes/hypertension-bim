@@ -20,10 +20,11 @@
 6. [Clinical Events](#6-clinical-events)
 7. [Treatment Persistence](#7-treatment-persistence)
 8. [Subgroup Analysis](#8-subgroup-analysis)
-9. [Sensitivity Analysis](#9-sensitivity-analysis)
-10. [Results Summary](#10-results-summary)
-11. [Validation & Quality Assurance](#11-validation--quality-assurance)
-12. [References](#12-references)
+9. [Cardiac-Renal Comorbidity Considerations](#9-cardiac-renal-comorbidity-considerations)
+10. [Sensitivity Analysis](#10-sensitivity-analysis)
+11. [Results Summary](#11-results-summary)
+12. [Validation & Quality Assurance](#12-validation--quality-assurance)
+13. [References](#13-references)
 
 ---
 
@@ -67,7 +68,8 @@ This document integrates six standalone technical reports:
 | Clinical Events | Section 6 | Event rates and treatment effects |
 | Treatment Persistence | Section 7 | Adherence and discontinuation |
 | Subgroup Analysis | Section 8 | PA, CKD, age stratification |
-| Sensitivity Analysis | Section 9 | DSA, PSA, scenarios |
+| Cardiac-Renal Comorbidity | Section 9 | Dual-burden modelling, cross-pathway interactions |
+| Sensitivity Analysis | Section 10 | DSA, PSA, scenarios |
 
 ---
 
@@ -402,11 +404,79 @@ Non-PA           █████████████████████
 
 ---
 
-# 9. Sensitivity Analysis
+# 9. Cardiac-Renal Comorbidity Considerations
+
+## 9.1 Clinical Context
+
+Resistant hypertension is characterised by a high prevalence of concurrent cardiac and renal disease. In the eligible BIM population, approximately 25% have CKD Stage 3-4, 15% have primary aldosteronism with multi-organ damage, and 35% have diabetes — all of which amplify both cardiac and renal event risk. This section documents how the BIM accounts for this dual burden and how it relates to the companion microsimulation's more detailed pathway modelling.
+
+## 9.2 Subgroup-Based Risk Capture
+
+The BIM uses **multiplicative subgroup modifiers** (Section 8.2) to reflect the elevated event rates in patients with cardiac-renal comorbidity. These modifiers apply to both cardiac events (MI, Stroke, HF, AF) and renal events (ESRD) simultaneously:
+
+| Subgroup | Cardiac Modifiers | Renal Modifier (ESRD) | Rationale |
+|----------|-------------------|-----------------------|-----------|
+| **CKD Stage 3-4** | MI 1.50×, Stroke 1.30×, HF 1.80×, AF 1.20× | ESRD 3.50× | Reduced eGFR independently predicts CV events (Go et al. 2004); CKD accelerates atherosclerosis and volume overload |
+| **Primary Aldosteronism** | MI 1.40×, Stroke 1.50×, HF 2.05×, AF 3.00× | ESRD 1.80× | Excess aldosterone causes direct cardiac fibrosis, endothelial dysfunction, and glomerular injury (Monticone 2018) |
+| **Diabetic** | MI 1.40×, Stroke 1.35×, HF 1.60×, AF 1.30× | ESRD 1.80× | Diabetic cardiorenal metabolic syndrome with microvascular and macrovascular damage |
+| **Age ≥65** | MI 1.50×, Stroke 1.70×, HF 2.00×, AF 2.20× | ESRD 1.20× | Age-related vascular stiffening and nephrosclerosis |
+
+**Key design choice:** Subgroups are defined as mutually exclusive categories within each dimension. A patient classified in the "PA" etiology subgroup has both cardiac and renal multipliers applied to their baseline event rates, capturing the dual burden without requiring individual-level state tracking.
+
+## 9.3 Cross-Pathway Interactions
+
+### 9.3.1 Interactions Captured by the BIM
+
+| Interaction | Modelling Approach | Source |
+|-------------|-------------------|--------|
+| CKD → elevated CV risk | CKD subgroup applies cardiac event multipliers (MI 1.50×, HF 1.80×) | Go et al. 2004, ARIC Study |
+| PA → cardiac + renal damage | PA subgroup applies HF 2.05×, AF 3.00×, ESRD 1.80× simultaneously | Monticone 2018 |
+| Diabetes → cardiorenal risk | Diabetes subgroup applies cardiac and renal multipliers concurrently | UKPDS, ADVANCE |
+| Renal events → high costs | ESRD event cost ($125,000 Year 1) includes CV-mediated mortality component | USRDS 2023 |
+| IXA-001 benefit in dual-burden | Subgroup-specific cost offsets reflect higher baseline events (PA: $4,414/patient vs. $5,010 overall) | Model output |
+
+### 9.3.2 Interactions Not Captured by the BIM
+
+| Interaction | Why Not Modelled | Addressed In |
+|-------------|-----------------|--------------|
+| Concurrent cardiac-renal state tracking | BIM uses cohort-level subgroups, not individual patient states | Microsimulation |
+| Dynamic eGFR decline trajectory | CKD modelled as a single event rate, not a continuous variable | Microsimulation (KFRE equations) |
+| AKI following cardiac events | No post-event acute renal injury modelling | Microsimulation |
+| Cardiorenal syndrome (bidirectional) | No feedback loop between worsening cardiac and renal function | Microsimulation |
+| SGLT2i as dual-benefit agent | No explicit concurrent cardio-renal protective therapy | Microsimulation |
+| Differential treatment escalation | Market uptake is uniform within subgroups; no clinical-decision-driven intensification | Microsimulation |
+
+## 9.4 Treatment Implications for Dual-Burden Patients
+
+The BIM's treatment model is market-share-based rather than clinically driven:
+
+- **IXA-001 relative risk reductions are applied uniformly** within each subgroup — the same RRR (e.g., HF 50%, ESRD 55%) applies regardless of concurrent cardiac-renal status
+- **Cost offsets are calculated independently** for each event type and then summed — avoided cardiac events plus avoided renal events
+- **Displacement follows uniform uptake curves** — no differential switching for patients with higher dual-burden severity
+- **Subgroup modifiers are the primary value differentiator** — PA and CKD subgroups show lower budget impact per patient because higher baseline event rates yield larger cost offsets when IXA-001's RRR is applied
+
+## 9.5 Relationship to Companion Microsimulation
+
+The companion CEA microsimulation (`/hypertension_microsim/`) provides detailed individual-level dual-pathway modelling that complements the BIM's cohort approach:
+
+| Feature | BIM (This Model) | Microsimulation |
+|---------|-------------------|-----------------|
+| State tracking | Cohort-level subgroups | Independent cardiac + renal states per patient |
+| eGFR modelling | CKD as categorical subgroup (Stage 3-4 vs. non-CKD) | Continuous eGFR with monthly KFRE-based decline |
+| Cross-pathway risk | Static multipliers per subgroup | PREVENT equations use eGFR as CV risk predictor |
+| SGLT2i | Not modelled | 40% eGFR decline reduction + 30% HF risk reduction |
+| Treatment decisions | Market-share uptake curves | BP-driven intensification with clinical inertia |
+| Cost structure | Per-patient annual averages by treatment | Monthly state-dependent costs (cardiac + renal stacked) |
+
+For HTA submissions, the BIM and microsimulation should be presented together: the BIM for budget planning and the microsimulation for clinical pathway detail and cost-effectiveness evidence.
+
+---
+
+# 10. Sensitivity Analysis
 
 *Full details: `docs/sensitivity_analysis_technical_report.md`*
 
-## 9.1 Deterministic Sensitivity Analysis
+## 10.1 Deterministic Sensitivity Analysis
 
 ### Key Parameter Ranges
 
@@ -432,7 +502,7 @@ ESRD RRR         ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ $17.8B - $18.9
              $10B      $15B      $20B      $25B      $30B
 ```
 
-## 9.2 Probabilistic Sensitivity Analysis
+## 10.2 Probabilistic Sensitivity Analysis
 
 ### PSA Results (1,000 iterations)
 
@@ -455,7 +525,7 @@ ESRD RRR         ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ $17.8B - $18.9
     $11.7B        $18.4B         $26.4B
 ```
 
-## 9.3 Scenario Analysis
+## 10.3 Scenario Analysis
 
 | Scenario | 5-Year Net BI | vs. Base |
 |----------|---------------|----------|
@@ -467,7 +537,7 @@ ESRD RRR         ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ $17.8B - $18.9
 | PA subgroup only | $2.42B | -87% |
 | Generic entry Year 3 | $16.89B | -8% |
 
-## 9.4 Threshold Analysis
+## 10.4 Threshold Analysis
 
 | Target Budget Impact | Required IXA-001 Price | Price Change |
 |---------------------|------------------------|--------------|
@@ -478,9 +548,9 @@ ESRD RRR         ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ $17.8B - $18.9
 
 ---
 
-# 10. Results Summary
+# 11. Results Summary
 
-## 10.1 Base Case Results (US, Moderate Scenario)
+## 11.1 Base Case Results (US, Moderate Scenario)
 
 | Metric | Year 1 | Year 3 | Year 5 | 5-Year Total |
 |--------|--------|--------|--------|--------------|
@@ -490,7 +560,7 @@ ESRD RRR         ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ $17.8B - $18.9
 | Event Cost Offset | -$145M | -$581M | -$932M | -$1.50B |
 | Net Budget Impact | $946M | $2.96B | $5.15B | $18.33B |
 
-## 10.2 Multi-Scenario Summary
+## 11.2 Multi-Scenario Summary
 
 | Scenario | Year 5 Patients | 5-Year Net BI | BI per Patient |
 |----------|-----------------|---------------|----------------|
@@ -498,7 +568,7 @@ ESRD RRR         ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ $17.8B - $18.9
 | **Moderate** | **1,227,687** | **$18.33B** | **$5,010** |
 | Optimistic | 1,726,435 | $27.02B | $5,029 |
 
-## 10.3 Value Proposition
+## 11.3 Value Proposition
 
 | Factor | Finding |
 |--------|---------|
@@ -509,9 +579,9 @@ ESRD RRR         ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ $17.8B - $18.9
 
 ---
 
-# 11. Validation & Quality Assurance
+# 12. Validation & Quality Assurance
 
-## 11.1 Model Validation
+## 12.1 Model Validation
 
 | Validation Type | Method | Status |
 |-----------------|--------|--------|
@@ -520,7 +590,7 @@ ESRD RRR         ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ $17.8B - $18.9
 | External validity | Published trial comparison | ✓ Within ranges |
 | Cross-validation | Alternative BIA model | ✓ Consistent |
 
-## 11.2 Parameter Validation
+## 12.2 Parameter Validation
 
 | Parameter | Model Value | External Source | Deviation |
 |-----------|-------------|-----------------|-----------|
@@ -528,7 +598,7 @@ ESRD RRR         ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ $17.8B - $18.9
 | PA prevalence | 15% | 11-21% (Douma 2008) | Within range |
 | Spiro persistence (1yr) | 52% | 48-55% (MarketScan) | Within range |
 
-## 11.3 ISPOR BIA Checklist Compliance
+## 12.3 ISPOR BIA Checklist Compliance
 
 | Item | Status |
 |------|--------|
@@ -543,7 +613,7 @@ ESRD RRR         ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ $17.8B - $18.9
 
 ---
 
-# 12. References
+# 13. References
 
 ## Primary Sources
 
@@ -589,7 +659,8 @@ ESRD RRR         ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ $17.8B - $18.9
 | Clinical Events | `clinical_events_technical_report.md` | Section 6 |
 | Treatment Persistence | `treatment_persistence_technical_report.md` | Section 7 |
 | Subgroup Analysis | `subgroup_analysis_technical_report.md` | Section 8 |
-| Sensitivity Analysis | `sensitivity_analysis_technical_report.md` | Section 9 |
+| Cardiac-Renal Comorbidity | *(this document, Section 9)* | Section 9 |
+| Sensitivity Analysis | `sensitivity_analysis_technical_report.md` | Section 10 |
 
 ## Appendix B: Code Module Reference
 
