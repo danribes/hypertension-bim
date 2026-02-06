@@ -16,6 +16,56 @@
 
 </div>
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Target Population: Resistant Hypertension](#target-population-resistant-hypertension)
+- [Quick Start with Docker](#quick-start-with-docker)
+- [Web Interface (Streamlit)](#web-interface-streamlit)
+- [Installation (Local)](#installation-local)
+- [Model Structure](#model-structure)
+- [Enhanced Features](#enhanced-features)
+- [Input Parameters](#input-parameters)
+- [Modifying Inputs](#modifying-inputs)
+- [Output Description](#output-description)
+- [Multi-Country Support](#multi-country-support)
+- [Technical Details](#technical-details)
+- [File Structure](#file-structure)
+- [Usage Examples](#usage-examples)
+- [Documentation](#documentation)
+- [Companion Model: Cost-Effectiveness](#companion-model-cost-effectiveness)
+- [Version History](#version-history)
+
+---
+
+## Overview
+
+This Budget Impact Model (BIM) estimates the financial impact of introducing **IXA-001** (a selective aldosterone synthase inhibitor) to a healthcare plan's formulary for treating **uncontrolled resistant hypertension**.
+
+### What This Model Does
+
+The BIM compares two scenarios over a 5-year time horizon:
+
+| Scenario | Description |
+|----------|-------------|
+| **Current World** | Standard of care without IXA-001 (spironolactone, other MRAs, or no 4th-line therapy) |
+| **New World** | IXA-001 available and gaining market share according to uptake assumptions |
+
+### Key Outputs
+
+- **Total Budget Impact**: Aggregate incremental cost over 5 years
+- **PMPM (Per Member Per Month)**: Cost impact per plan member
+- **Year-by-Year Breakdown**: Annual budget impact trajectory
+- **Market Share Evolution**: How treatment mix changes over time
+- **Price Threshold Analysis**: Budget-neutral price point for IXA-001
+
+### Hybrid Approach
+
+This model uses a **hybrid Python + Excel approach**:
+
+- **Python**: Core calculation engine with flexibility for sensitivity analysis, scenario comparison, and programmatic modifications
+- **Excel**: User-friendly output workbook for payer discussions with interactive inputs and visualizations
+
 ---
 
 ## Target Population: Resistant Hypertension
@@ -132,66 +182,6 @@ docker run -p 8501:8501 hypertension-bim
 | "Permission denied" | Linux | Run `sudo usermod -aG docker $USER` and log out/in |
 | Port 8501 already in use | All | Change port: `docker run -p 8502:8501 hypertension-bim` then access http://localhost:8502 |
 | Slow build on Mac M1/M2 | macOS | This is normal for first build; subsequent runs use cache |
-
----
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Getting Started](#getting-started)
-3. [Web Interface (Streamlit)](#web-interface-streamlit)
-4. [Installation (Local)](#installation-local)
-5. [Model Structure](#model-structure)
-6. [Enhanced Features](#enhanced-features)
-7. [Input Parameters](#input-parameters)
-8. [Modifying Inputs](#modifying-inputs)
-9. [Output Description](#output-description)
-10. [Multi-Country Support](#multi-country-support)
-11. [Technical Details](#technical-details)
-12. [File Structure](#file-structure)
-13. [Linking to CEA Model](#linking-to-cea-model)
-
----
-
-## Overview
-
-This Budget Impact Model (BIM) estimates the financial impact of introducing **IXA-001** (a selective aldosterone synthase inhibitor) to a healthcare plan's formulary for treating **uncontrolled resistant hypertension**.
-
-### What This Model Does
-
-The BIM compares two scenarios over a 5-year time horizon:
-
-| Scenario | Description |
-|----------|-------------|
-| **Current World** | Standard of care without IXA-001 (spironolactone, other MRAs, or no 4th-line therapy) |
-| **New World** | IXA-001 available and gaining market share according to uptake assumptions |
-
-### Key Outputs
-
-- **Total Budget Impact**: Aggregate incremental cost over 5 years
-- **PMPM (Per Member Per Month)**: Cost impact per plan member
-- **Year-by-Year Breakdown**: Annual budget impact trajectory
-- **Market Share Evolution**: How treatment mix changes over time
-- **Price Threshold Analysis**: Budget-neutral price point for IXA-001
-
-### Hybrid Approach
-
-This model uses a **hybrid Python + Excel approach**:
-
-- **Python**: Core calculation engine with flexibility for sensitivity analysis, scenario comparison, and programmatic modifications
-- **Excel**: User-friendly output workbook for payer discussions with interactive inputs and visualizations
-
----
-
-## Getting Started
-
-### Option 1: Docker (Recommended)
-
-See [Quick Start with Docker](#quick-start-with-docker) above for platform-specific instructions.
-
-### Option 2: Local Python Installation
-
-See [Installation (Local)](#installation-local) below.
 
 ---
 
@@ -620,9 +610,15 @@ hypertension_bim/
 
 ---
 
-## Linking to CEA Model
+## Usage Examples
 
-The BIM uses avoided event costs derived from the **Cost-Effectiveness Analysis (CEA) Model** located in the companion `hypertension_microsim` project.
+See [Modifying Inputs](#modifying-inputs) for Python code examples, or use the [web interface](#web-interface-streamlit) for interactive analysis.
+
+---
+
+## Companion Model: Cost-Effectiveness
+
+This BIM has a companion **Individual-Level State-Transition Microsimulation** located at `/hypertension_microsim/` for detailed cost-effectiveness analysis. The BIM uses avoided event costs derived from the **Cost-Effectiveness Analysis (CEA) Model**.
 
 ### How Avoided Events Are Calculated
 
@@ -643,12 +639,6 @@ If the CEA model is re-run with updated parameters:
 inputs.costs.avoided_events_ixa_001_annual = 1500  # New value
 inputs.costs.avoided_events_spironolactone_annual = 900
 ```
-
----
-
-## Relationship to Microsimulation (CEA) Model
-
-This BIM has a companion **Individual-Level State-Transition Microsimulation** located at `/hypertension_microsim/` for detailed cost-effectiveness analysis.
 
 ### Model Comparison
 
@@ -773,6 +763,26 @@ All reports are ISPOR BIA compliant (10/10 items).
 For questions about this model, contact:
 
 **Atlantis Pharmaceuticals - HEOR Team**
+
+---
+
+## References
+
+1. **Carey RM, et al.** Resistant Hypertension: Detection, Evaluation, and Management. *Hypertension*. 2018;72(5):e53-e90. [Epidemiology]
+
+2. **Douma S, et al.** Prevalence of primary aldosteronism in resistant hypertension. *Ann Intern Med*. 2008;148(10):727-735. [PA prevalence]
+
+3. **Sullivan SD, et al.** Budget impact analysis - ISPOR principles of good practice. *Value in Health*. 2014;17(1):5-14. [BIA methodology]
+
+4. **Mauskopf JA, et al.** Principles of good practice for budget impact analysis. *Value in Health*. 2007;10(5):336-347. [BIA guidelines]
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | Feb 2026 | Initial release with full BIM, enhanced Excel, PSA, subgroups, multi-country support |
 
 ---
 
